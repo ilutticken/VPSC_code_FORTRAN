@@ -9,6 +9,7 @@ def read_load_conditions(proc_file, config):
     import numpy as np
 
     # Handle relative paths - if file doesn't exist, try relative to current directory
+    original_file = proc_file
     if not os.path.exists(proc_file):
         # Try looking in parent directory
         parent_file = os.path.join("..", proc_file)
@@ -21,9 +22,30 @@ def read_load_conditions(proc_file, config):
                 proc_file = filename
             elif os.path.exists(os.path.join("..", filename)):
                 proc_file = os.path.join("..", filename)
+            else:
+                # Try going up to workspace root and look for file
+                workspace_paths = [
+                    os.path.join("..", "..", "..", filename),
+                    os.path.join("..", "..", filename),
+                    os.path.join(
+                        "..", "..", proc_file.replace("\\", os.sep).replace("/", os.sep)
+                    ),
+                    os.path.join(
+                        "..",
+                        "..",
+                        "..",
+                        proc_file.replace("\\", os.sep).replace("/", os.sep),
+                    ),
+                ]
+                for test_path in workspace_paths:
+                    if os.path.exists(test_path):
+                        proc_file = test_path
+                        break
 
     if not os.path.exists(proc_file):
-        print(f"Warning: Process file {proc_file} not found, using default conditions")
+        print(
+            f"Warning: Process file {original_file} not found, using default conditions"
+        )
         return config
 
     try:
@@ -387,6 +409,11 @@ def read_vpsc_input(input_path, log_handle=None):
     config["iupdate"] = [
         int(lines[idx].split()[i]) for i in range(min(3, len(lines[idx].split())))
     ]
+    # Extract individual update flags for easier access
+    iupdate = config["iupdate"]
+    config["iupdori"] = iupdate[0] if len(iupdate) > 0 else 1  # Update orientation
+    config["iupdshp"] = iupdate[1] if len(iupdate) > 1 else 1  # Update shape
+    config["iupdhar"] = iupdate[2] if len(iupdate) > 2 else 1  # Update hardening
     idx += 1
     config["nneigh"] = int(lines[idx].split()[0])
     idx += 1
@@ -411,6 +438,31 @@ def read_vpsc_input(input_path, log_handle=None):
             ),
             "ngrains": 500,  # Default number of grains per phase
         }
+
+        # Add grain shape parameters
+        grain_shape_key = f"grain_shape_ph{phase_idx + 1}"
+        if grain_shape_key in config:
+            ishape, ifragm, crit_aspect = config[grain_shape_key]
+            phase_data["ishape"] = ishape
+            phase_data["ifragm"] = ifragm
+            phase_data["crit_aspect_ratio"] = crit_aspect
+        else:
+            phase_data["ishape"] = 0  # No grain shape evolution
+            phase_data["ifragm"] = 0  # No fragmentation
+            phase_data["crit_aspect_ratio"] = 25  # Default
+
+        # Add ellipsoid parameters
+        ellipsoid_ratios_key = f"ellipsoid_ratios_ph{phase_idx + 1}"
+        if ellipsoid_ratios_key in config:
+            phase_data["ellipsoid_ratios"] = config[ellipsoid_ratios_key]
+        else:
+            phase_data["ellipsoid_ratios"] = [1.0, 1.0, 1.0]
+
+        ellipsoid_euler_key = f"ellipsoid_euler_ph{phase_idx + 1}"
+        if ellipsoid_euler_key in config:
+            phase_data["ellipsoid_euler"] = config[ellipsoid_euler_key]
+        else:
+            phase_data["ellipsoid_euler"] = [0.0, 0.0, 0.0]
 
         # Load crystal properties if available
         filecrys_key = f"filecrys_ph{phase_idx + 1}"
@@ -439,9 +491,25 @@ def read_vpsc_input(input_path, log_handle=None):
                         phase_data["crystal_symmetry"] = crystal_data.get(
                             "crysym", "cubic"
                         )
+
+                        # Store growth parameters if present
+                        phase_data["constitutive_law"] = crystal_data.get(
+                            "constitutive_law", 0
+                        )
+                        if crystal_data.get("gamd0") is not None:
+                            phase_data["gamd0"] = crystal_data["gamd0"]
+                        if crystal_data.get("growth_rate_tensor") is not None:
+                            phase_data["growth_rate_tensor"] = crystal_data[
+                                "growth_rate_tensor"
+                            ]
+
                         print(
                             f"  Loaded elastic constants for phase {phase_idx + 1}: {crystal_data.get('crysym', 'cubic')}"
                         )
+                        if crystal_data.get("constitutive_law") == 30:
+                            print(
+                                f"  Irradiation growth model enabled (GAMD0={crystal_data.get('gamd0', 'N/A')})"
+                            )
                     else:
                         print(
                             f"  Could not expand elastic constants for phase {phase_idx + 1}"
@@ -561,11 +629,10 @@ def read_crystal_data(filecrys_path):
         print(f"  Crystal file not found: {filecrys_path}")
         return {"crystal_file": filecrys_path, "error": "not found"}
     with open(filecrys_path, "r") as f:
-        lines = [
-            line.strip()
-            for line in f
-            if line.strip() and not line.strip().startswith("*")
-        ]
+        # Keep both data lines and comment lines for constitutive law parsing
+        all_lines = [line.strip() for line in f if line.strip()]
+        # Regular lines (no comments) for elastic constants
+        lines = [line.strip() for line in all_lines if not line.strip().startswith("*")]
 
     # Store raw lines for elastic constant parsing
     data["raw_lines"] = lines
@@ -709,7 +776,69 @@ def read_crystal_data(filecrys_path):
         )
         data["elastic_matrix"] = np.eye(6)  # Fallback to identity
 
-    # Slip/twin systems (if present)
-    # This is a minimal parser; extend as needed for full .sx format
+    # Parse slip/twin systems and constitutive law parameters
+    data["slip_systems"] = []
+    data["constitutive_law"] = 0  # Default Voce
+    data["gamd0"] = None  # Irradiation creep parameter
+    data["growth_rate_tensor"] = None  # Growth rate tensor
+
+    # Search in all lines (including comments) for constitutive law
+    slip_start = None
+    constitutive_start = None
+    for i, line in enumerate(all_lines):
+        if "SLIP AND TWINNING MODES" in line:
+            slip_start = i + 1
+        elif "*Constitutive law" in line:
+            # Found constitutive law comment - next line has the value
+            if i + 1 < len(all_lines):
+                try:
+                    const_line = parse_line(all_lines[i + 1])
+                    if const_line and len(const_line) >= 1:
+                        data["constitutive_law"] = int(const_line[0])
+                        print(f"  Found constitutive law: {data['constitutive_law']}")
+                        constitutive_start = i + 1
+                        break
+                except:
+                    pass
+
+    # Parse growth parameters if constitutive law is 30
+    if data["constitutive_law"] == 30:
+        # Look for GAMD0 parameter in all lines
+        for i, line in enumerate(all_lines):
+            if "GAMD0" in line and i + 1 < len(all_lines):
+                try:
+                    gamd0_line = parse_line(all_lines[i + 1])
+                    if gamd0_line and len(gamd0_line) >= 1:
+                        data["gamd0"] = gamd0_line[0]
+                        print(f"  Found GAMD0: {data['gamd0']}")
+                        break
+                except:
+                    continue
+
+        # Look for growth rate tensor in all lines
+        for i, line in enumerate(all_lines):
+            if "Growth rate tensor" in line:
+                try:
+                    # Read 3x3 tensor (next 3 lines)
+                    tensor = []
+                    for k in range(1, 4):
+                        if i + k < len(all_lines):
+                            row = parse_line(all_lines[i + k])
+                            if row and len(row) >= 3:
+                                tensor.append(row[:3])
+                    if len(tensor) == 3:
+                        data["growth_rate_tensor"] = np.array(tensor)
+                        print(
+                            f"  Found growth rate tensor: {data['growth_rate_tensor'][0,0]}, {data['growth_rate_tensor'][1,1]}, {data['growth_rate_tensor'][2,2]}"
+                        )
+                    break
+                except:
+                    continue
+
+    # Basic slip system parsing (simplified)
+    if slip_start:
+        # This would need full implementation for complete .sx parsing
+        # For now, we'll just note that slip systems are present
+        data["has_slip_systems"] = True
 
     return data

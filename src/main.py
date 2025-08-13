@@ -22,6 +22,7 @@ from hardening import update_hardening
 from orientation import update_orientation
 from shape import update_shape
 from twinning import update_twinning
+from rotation import read_rotation_matrix, apply_texture_rotation
 
 
 def main():
@@ -85,15 +86,31 @@ def main():
         # Open other output files based on config
         output_files = open_output_files(output_dir, config)
 
-        # --- Main Process Loop ---
-        time = 0.0
-        converged = True
-
         # Initialize accumulated strain
         eps_acu = 0.0
         eps_vm = 0.0
         eps_total_c = np.zeros((3, 3))
         eps_total_v = np.zeros(6)
+        config["epsacu"] = eps_acu
+
+        # Initialize grain shapes for phases with shape evolution
+        for phase_idx, phase_data in enumerate(config.get("phases", [])):
+            ishape = phase_data.get("ishape", 0)
+            if ishape > 0:
+                # Set initial ellipsoid ratios
+                initial_ratios = phase_data.get("ellipsoid_ratios", [1.0, 1.0, 1.0])
+                phase_data["ellipsoid_ratios"] = initial_ratios
+                # Initialize dummy grains for shape evolution
+                from shape import update_grain_shapes
+
+                update_grain_shapes(phase_data)
+
+        # Write initial shape statistics (at strain = 0.0)
+        write_texture(output_files, config)
+
+        # --- Main Process Loop ---
+        time = 0.0
+        converged = True
 
         # Robust process block parsing for VPSC input files (handles extra lines per process)
         with open(files["main_input"], "r") as f_main_in:
@@ -172,6 +189,25 @@ def main():
                     extra.append(lines[i])  # angular increment
                     i += 1
                 proc_file = "LANKFORD"  # dummy filename
+            elif ivgvar == 4:
+                # For rigid rotation (ivgvar=4), find rotation matrix file
+                while i < len(lines):
+                    tokens = lines[i].split()
+                    # Accept as rotation file if it looks like a filename (not just a number or comment)
+                    if (
+                        tokens
+                        and not tokens[0].isdigit()
+                        and not lines[i].startswith("*")
+                    ):
+                        proc_file = lines[i]
+                        break
+                    i += 1
+                else:
+                    print(
+                        f"Warning: Could not find rotation file for process {proc_num+1}, skipping."
+                    )
+                    continue
+                i += 1
             else:
                 print(
                     f"Warning: Unsupported ivgvar={ivgvar} for process {proc_num+1}, skipping."
@@ -192,6 +228,32 @@ def main():
             if ivgvar == 0 or ivgvar == 1:
                 config = read_load_conditions(proc_file, config)
                 num_steps = config.get("nsteps", 1)
+            elif ivgvar == 4:
+                # For rigid rotation (ivgvar=4), read rotation matrix and apply it
+                print(f"Applying texture rotation from file: {proc_file}")
+                try:
+                    rotation_matrix = read_rotation_matrix(proc_file)
+                    print(f"  Loaded rotation matrix:")
+                    for i in range(3):
+                        print(
+                            f"    [{rotation_matrix[i,0]:8.5f} {rotation_matrix[i,1]:8.5f} {rotation_matrix[i,2]:8.5f}]"
+                        )
+
+                    apply_texture_rotation(config, rotation_matrix)
+                    print("  Texture rotation completed successfully")
+
+                    # Write rotated texture
+                    # Note: For rotations, we don't write to files, just print info
+                    print("  Texture rotation applied to grain orientations in memory")
+
+                    # Skip to next process (rotation is instantaneous)
+                    continue
+
+                except Exception as e:
+                    print(f"Error during texture rotation: {e}")
+                    continue
+
+                num_steps = 0  # No deformation steps for rotation
             else:
                 # For PCYS, PCYS_IT, and Lankford, we don't have process files, just do 1 step
                 num_steps = 1
@@ -203,9 +265,29 @@ def main():
                 config["pcys_iterative"] = True
             if ivgvar == 3 and extra:
                 config["lankford_angular_increment"] = extra[0]
-                # --- Deformation Step Loop ---
+            # --- Deformation Step Loop ---
             for i_step in range(1, num_steps + 1):
                 print(f"*******   STEP {i_step}")
+
+                # Apply irradiation growth strain if constitutive law = 30
+                if hasattr(config, "phases") and config["phases"]:
+                    for phase_idx, phase_data in config["phases"].items():
+                        if phase_data.get("constitutive_law") == 30:
+                            growth_tensor = phase_data.get("growth_rate_tensor")
+                            if growth_tensor is not None:
+                                # Apply growth strain increment
+                                eqincr = config.get("eqincr", 0.001)
+                                growth_strain_increment = growth_tensor * eqincr
+
+                                # Add growth strain to total strain
+                                if "total_growth_strain" not in config:
+                                    config["total_growth_strain"] = np.zeros((3, 3))
+                                config["total_growth_strain"] += growth_strain_increment
+
+                                print(
+                                    f"  Applied irradiation growth strain increment (Phase {phase_idx})"
+                                )
+
                 # Core calculation based on interaction type
                 interaction_type = config.get("interaction", 2)
                 if interaction_type == -1:  # Thermo-elastic
@@ -228,6 +310,11 @@ def main():
                 eqincr = config.get("eqincr", 0.001)
                 temp = config.get("tempini", 298.0)
                 time = i_step * eqincr
+
+                # Update accumulated strain
+                strain_increment = np.linalg.norm(dbar) * eqincr
+                eps_acu += strain_increment
+                config["epsacu"] = eps_acu
 
                 # von Mises equivalent strain and stress
                 evm = np.sqrt(

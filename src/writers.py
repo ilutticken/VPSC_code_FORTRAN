@@ -38,11 +38,70 @@ def open_output_files(output_dir, config):
 
 def write_texture(output_files, config):
     """
-    Writes the texture files.
+    Writes the texture files and grain shape statistics.
     """
     print("Writing texture files...")
-    # Placeholder implementation
-    pass
+
+    # Write grain shape statistics to STAT_AXES files
+    write_shape_statistics(output_files, config)
+
+
+def write_shape_statistics(output_files, config):
+    """
+    Write grain shape statistics to STAT_AXES files.
+    Format: EPS PHASE AVAX1 AVAX2 AVAX3 SDAX1 SDAX2 SDAX3
+    """
+    import numpy as np
+
+    # Get current strain (accumulated)
+    epsacu = config.get("epsacu", 0.0)
+
+    # Loop over phases to write statistics
+    for i_phase, phase_data in enumerate(config.get("phases", []), 1):
+        ishape = phase_data.get("ishape", 0)
+
+        # Only write for phases with shape evolution
+        if ishape == 0:
+            continue
+
+        # Get STAT_AXES file for this phase
+        stat_file_key = f"stat_axes_{i_phase}"
+        if stat_file_key not in output_files:
+            continue
+
+        stat_file = output_files[stat_file_key]
+
+        # Write header only at the beginning
+        if stat_file.tell() == 0:
+            stat_file.write(
+                "  EPS  PHASE      AVAX1   AVAX2   AVAX3      SDAX1   SDAX2   SDAX3\n"
+            )
+
+        # Get ellipsoid ratios for this phase's grains
+        ellipsoid_ratios = []
+        for grain in phase_data.get("grains", []):
+            if "ellipsoid_ratios" in grain:
+                ellipsoid_ratios.append(grain["ellipsoid_ratios"])
+
+        if not ellipsoid_ratios:
+            continue
+
+        # Convert to numpy array for statistics
+        ratios_array = np.array(ellipsoid_ratios)  # Shape: (n_grains, 3)
+
+        # Calculate averages and standard deviations
+        avg_ratios = np.mean(ratios_array, axis=0)  # [avg_ax1, avg_ax2, avg_ax3]
+        std_ratios = np.std(ratios_array, axis=0)  # [std_ax1, std_ax2, std_ax3]
+
+        # Write to file: EPS PHASE AVAX1 AVAX2 AVAX3 SDAX1 SDAX2 SDAX3
+        stat_file.write(f"  {epsacu:5.2f}     {i_phase}      ")
+        stat_file.write(
+            f"{avg_ratios[0]:5.3f}   {avg_ratios[1]:5.3f}   {avg_ratios[2]:5.3f}      "
+        )
+        stat_file.write(
+            f"{std_ratios[0]:5.3f}   {std_ratios[1]:5.3f}   {std_ratios[2]:5.3f}\n"
+        )
+        stat_file.flush()  # Ensure data is written immediately
 
 
 def write_postmortem(file_path, config):
