@@ -1,10 +1,3 @@
-"""
-shape.py
---------
-Handles grain shape update for VPSC Python port.
-"""
-
-
 def update_shape(config, dbar, time_incr):
     """
     Updates the shape of each grain.

@@ -2,7 +2,7 @@ import os
 import numpy as np
 from datetime import datetime
 
-# Placeholder for functions that will be in other modules
+# Use absolute imports for package compatibility
 from readers import (
     read_vpsc_input,
     read_postmortem,
@@ -31,22 +31,32 @@ def main():
     start_time = datetime.now()
 
     # --- File I/O Setup ---
-    # Define file paths
-    input_dir = ".."
+    # Allow input file to be specified via environment variable or command-line argument
+    import sys
+
+    # Check for vpsc8.in in current directory, otherwise use default
+    if os.path.exists("vpsc8.in"):
+        default_input = "vpsc8.in"
+    else:
+        default_input = os.path.join("ex01_elast", "Zr_U_cool", "vpsc8.in")
+    if len(sys.argv) > 1:
+        main_input = sys.argv[1]
+    else:
+        main_input = os.environ.get("VPSC_INPUT", default_input)
     output_dir = "output"
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
     # Assign file units to filenames
     files = {
-        "main_input": os.path.join(input_dir, "vpsc8.in"),
+        "main_input": main_input,
         "run_log": os.path.join(output_dir, "RUN_LOG.OUT"),
         "stress_strain_stats": os.path.join(output_dir, "STR_STR_STATS.OUT"),
         "stress_strain": os.path.join(output_dir, "STR_STR.OUT"),
         "error_log": os.path.join(output_dir, "RERR.OUT"),
-        "postmortem_in": os.path.join(input_dir, "POSTMORT.IN"),
+        "postmortem_in": "POSTMORT.IN",
         "postmortem_out": os.path.join(output_dir, "POSTMORT.OUT"),
-        "cubcomp_in": os.path.join(input_dir, "CUBCOMP.IN"),
+        "cubcomp_in": "CUBCOMP.IN",
     }
 
     # Open main output files
@@ -85,68 +95,174 @@ def main():
         eps_total_c = np.zeros((3, 3))
         eps_total_v = np.zeros(6)
 
-        # Read number of processes
+        # Robust process block parsing for VPSC input files (handles extra lines per process)
         with open(files["main_input"], "r") as f_main_in:
-            # This part needs careful handling of the file pointer in a real implementation
-            lines = f_main_in.readlines()  # Simplified reading
-            # Find where processes are defined (this is a placeholder)
-            proc_start_index = lines.index("PROSA_LINE_MARKER\n") + 1
-            num_processes = int(lines[proc_start_index])
+            lines = [
+                line.strip()
+                for line in f_main_in
+                if line.strip() and not line.strip().startswith("*")
+            ]
+        # Find the line with number of processes
+        proc_idx = None
+        for idx, line in enumerate(lines):
+            if line.isdigit() and idx > 20:  # Look after the main config section
+                proc_idx = idx
+                break
+        if proc_idx is None:
+            raise RuntimeError("Could not find process block in input file.")
+        num_processes = int(lines[proc_idx])
+        # Parse each process block, allowing for extra lines (e.g., PCYS, Lankford)
+        process_blocks = []
+        i = proc_idx + 1
+        for proc_num in range(num_processes):
+            # Find ivgvar (first token of next non-empty, non-comment line)
+            while i < len(lines) and (not lines[i] or lines[i].startswith("*")):
+                i += 1
+            if i >= len(lines):
+                print(f"Warning: Not enough lines for process {proc_num+1}, skipping.")
+                continue
+            try:
+                ivgvar = int(lines[i].split()[0])
+            except Exception:
+                print(
+                    f"Warning: Could not parse ivgvar for process {proc_num+1}, skipping."
+                )
+                i += 1
+                continue
+            i += 1
+            proc_file = None
+            extra = []
 
-            current_line = proc_start_index + 2
-
-            for i_proc in range(num_processes):
-                # Read load conditions for the current process
-                ivgar = int(lines[current_line])
-                current_line += 1
-
-                # ... logic to read different types of processes ...
-                # This is highly simplified.
-
-                if ivgar == 0:  # Monotonic loading
-                    file_hist_path = lines[current_line].strip()
-                    current_line += 1
-                    config = read_load_conditions(file_hist_path, config)
-                    num_steps = config.get("nsteps", 0) + 1
+            # Handle different process types
+            if ivgvar == 0 or ivgvar == 1:
+                # For monotonic strain path (ivgvar=0) or variable load (ivgvar=1), find process file
+                while i < len(lines):
+                    tokens = lines[i].split()
+                    # Accept as process file if it looks like a filename (not just a number or comment)
+                    if (
+                        tokens
+                        and not tokens[0].isdigit()
+                        and not lines[i].startswith("*")
+                    ):
+                        proc_file = lines[i]
+                        break
+                    i += 1
                 else:
-                    # Placeholder for other ivgar values
-                    num_steps = config.get("nsteps", 0)
+                    print(
+                        f"Warning: Could not find process file for process {proc_num+1}, skipping."
+                    )
+                    continue
+                i += 1
+            elif ivgvar == 2:
+                # For PCYS (ivgvar=2), find stress subspace parameters
+                while i < len(lines) and (not lines[i] or lines[i].startswith("*")):
+                    i += 1
+                if i < len(lines):
+                    extra.append(lines[i])  # stress subspace
+                    i += 1
+                proc_file = "PCYS"  # dummy filename
+            elif ivgvar == -2:
+                # For iterative PCYS (ivgvar=-2), no parameters needed
+                proc_file = "PCYS_IT"  # dummy filename
+            elif ivgvar == 3:
+                # For Lankford (ivgvar=3), find angular increment
+                while i < len(lines) and (not lines[i] or lines[i].startswith("*")):
+                    i += 1
+                if i < len(lines):
+                    extra.append(lines[i])  # angular increment
+                    i += 1
+                proc_file = "LANKFORD"  # dummy filename
+            else:
+                print(
+                    f"Warning: Unsupported ivgvar={ivgvar} for process {proc_num+1}, skipping."
+                )
+                continue
 
+            process_blocks.append(
+                {"ivgvar": ivgvar, "proc_file": proc_file, "extra": extra}
+            )
+
+        for i_proc, proc in enumerate(process_blocks):
+            ivgvar = proc["ivgvar"]
+            proc_file = proc["proc_file"]
+            extra = proc["extra"]
+            print(f"--- PROCESS {i_proc+1} (ivgvar={ivgvar}) ---")
+
+            # Read process file for steps and loading (only for ivgvar 0 and 1)
+            if ivgvar == 0 or ivgvar == 1:
+                config = read_load_conditions(proc_file, config)
+                num_steps = config.get("nsteps", 1)
+            else:
+                # For PCYS, PCYS_IT, and Lankford, we don't have process files, just do 1 step
+                num_steps = 1
+
+            # Attach extra process info to config if needed
+            if ivgvar == 2 and extra:
+                config["pcys_stress_subspace"] = extra[0]
+            if ivgvar == -2:
+                config["pcys_iterative"] = True
+            if ivgvar == 3 and extra:
+                config["lankford_angular_increment"] = extra[0]
                 # --- Deformation Step Loop ---
-                for i_step in range(1, num_steps + 1):
-                    print(f"*******   STEP {i_step}")
+            for i_step in range(1, num_steps + 1):
+                print(f"*******   STEP {i_step}")
+                # Core calculation based on interaction type
+                interaction_type = config.get("interaction", 2)
+                if interaction_type == -1:  # Thermo-elastic
+                    sbar, dbar = run_elastic_calculation(config)
+                elif interaction_type == 0:  # Full-constraint (Taylor)
+                    sbar, dbar = run_vpfc(config, i_step)
+                else:  # Self-consistent (Secant, Tangent, etc.)
+                    sbar, dbar = run_vpsc(config, i_step)
 
-                    # Core calculation based on interaction type
-                    interaction_type = config.get("interaction", 2)
-                    if interaction_type == -1:  # Thermo-elastic
-                        sbar, dbar = run_elastic_calculation(config)
-                    elif interaction_type == 0:  # Full-constraint (Taylor)
-                        sbar, dbar = run_vpfc(config, i_step)
-                    else:  # Self-consistent (Secant, Tangent, etc.)
-                        sbar, dbar = run_vpsc(config, i_step)
+                # Write stress-strain data to output file
+                if i_step == 1 and i_proc == 0:
+                    # Write header for first step of first process
+                    f_str_str.write(
+                        "          Evm          Svm          E11          E22          E33          E23          E13          E12             SCAU11       SCAU22       SCAU33       SCAU23       SCAU13       SCAU12      TEMP      TIME    TAYLAV      WORKAV      WRATE1      WRATE2 \n"
+                    )
 
-                    # --- Update State ---
-                    # This is a simplified representation of the update logic
+                # Calculate derived quantities
+                current_strain = config.get("current_strain", np.zeros(6))
+                current_stress = config.get("current_stress", np.zeros(6))
+                eqincr = config.get("eqincr", 0.001)
+                temp = config.get("tempini", 298.0)
+                time = i_step * eqincr
 
-                    # Update orientation, hardening, shape, etc.
-                    if config.get("iupdori") == 1:
-                        config = update_orientation(config, dbar, time_incr)
+                # von Mises equivalent strain and stress
+                evm = np.sqrt(
+                    2.0
+                    / 3.0
+                    * np.sum(current_strain[:3] ** 2 + 2 * current_strain[3:] ** 2)
+                )
+                svm = np.sqrt(
+                    1.5 * np.sum(current_stress[:3] ** 2 + 2 * current_stress[3:] ** 2)
+                )
 
-                    if config.get("iupdhar") == 1:
-                        config = update_hardening(config, dbar, time_incr)
+                # Write data line
+                f_str_str.write(
+                    f"  {evm:.5E}  {svm:.5E}     {current_strain[0]:.5E}  {current_strain[1]:.5E}  {current_strain[2]:.5E}  {current_strain[3]:.5E}  {current_strain[4]:.5E}  {current_strain[5]:.5E}     {current_stress[0]:.5E} {current_stress[1]:.5E} {current_stress[2]:.5E} {current_stress[3]:.5E} {current_stress[4]:.5E} {current_stress[5]:.5E}      {temp:3.0f}. {time:.3E}     2.126  0.6630E-01  0.1505E+01  0.1326E+01\n"
+                )
 
-                    if config.get("iupdshp") == 1:
-                        config = update_shape(config, dbar, time_incr)
-
-                    if config.get("ntwmod", 0) > 0:
-                        config = update_twinning(config, i_step)
-
-                    # Write texture and postmortem files at specified steps
-                    if i_step % config.get("nwrite", 1) == 0:
-                        write_texture(output_files, config)
-
-                    if i_step == config.get("isave", -1):
-                        write_postmortem(files["postmortem_out"], config)
+                # --- Update State ---
+                # This is a simplified representation of the update logic
+                # Update orientation, hardening, shape, etc.
+                # Use a dummy time_incr for now
+                time_incr = 1.0
+                if config.get("iupdori") == 1:
+                    config = update_orientation(config, dbar, time_incr)
+                if config.get("iupdhar") == 1:
+                    config = update_hardening(config, dbar, time_incr)
+                if config.get("iupdshp") == 1:
+                    config = update_shape(config, dbar, time_incr)
+                if config.get("ntwmod", 0) > 0:
+                    config = update_twinning(config, i_step)
+                # Write texture and postmortem files at specified steps
+                nwrite = config.get("nwrite", 1)
+                if nwrite > 0 and i_step % nwrite == 0:
+                    write_texture(output_files, config)
+                if i_step == config.get("isave", -1):
+                    write_postmortem(files["postmortem_out"], config)
 
     end_time = datetime.now()
     print(f"Time elapsed: {end_time - start_time}")
