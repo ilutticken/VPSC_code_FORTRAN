@@ -1,0 +1,26 @@
+1                          VP (1) or ELAST (-1) regime
+1                          number of phases (nph)
+1.0  0.0                   relative vol. fract. of phases (wph(i))
+*INFORMATION ABOUT PHASE #1
+0   0   25                      grain shape contrl, fragmentn, crit aspect ratio
+1.0  1.0  1.0                 initial ellipsoid ratios (dummy if ishape=4)
+0.0  0.0  0.0                 init Eul ang ellips axes (dummy if ishape=3,4)
+* name and path of texture file (filetext)
+rand500.tex
+* name and path of single crystal file (filecrys)
+FCC.sx
+* name and path for output files (fileout)
+test_fcc
+* name and path of hard self (filehard) or thermal file (filetherm)
+NONE
+* boundary conditions
+1  5   1   100.   1
+-1
+* Applied velocity gradient at step 1:
+* flag(i,j) ldot(i,j)
+1 1 1
+1 1 1
+1 1 1
+-0.5  0.0  0.0
+ 0.0 -0.5  0.0
+ 0.0  0.0  1.0

@@ -45,6 +45,18 @@ vpsc8 -i my_simulation.in
 vpsc8 -i input.in -d /path/to/simulation/directory
 ```
 
+### Cross-Platform Compatibility
+
+If you encounter path-related issues on Linux/macOS (due to Windows-style paths in some input files), run the provided path fixer:
+
+```bash
+# Fix all example files
+python fix_paths.py
+
+# Fix specific directory
+python fix_paths.py examples/ex02_FCC
+```
+
 ### Python API Usage
 
 ```python
