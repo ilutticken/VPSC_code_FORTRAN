@@ -19,8 +19,8 @@ Python implementation of the VPSC8 (Visco-Plastic Self-Consistent) polycrystal p
 ### From Source
 
 ```bash
-git clone https://github.com/lanl/VPSC8-python
-cd VPSC8-python
+git clone https://github.com/ilutticken/VPSC_code_FORTRAN.git
+cd VPSC_code_FORTRAN
 pip install -e .
 ```
 
@@ -108,47 +108,47 @@ print(f"Completed {config.get('istep', 0)} deformation steps")
 ## Project Structure
 
 ```
-VPSC8-python/
-├── vpsc8/                    # Main Python package
-│   ├── __init__.py          # Package initialization
-│   ├── main.py              # Main simulation driver
-│   ├── core.py              # Core VPSC and VPFC algorithms
-│   ├── readers.py           # Input file parsers
-│   ├── writers.py           # Output file generators
-│   ├── orientation.py       # Crystallographic orientation handling
-│   ├── hardening.py         # Hardening law implementations
-│   ├── schmid.py            # Schmid tensor calculations
-│   ├── shape.py             # Grain shape evolution
-│   ├── tensor.py            # Tensor operations and utilities
-│   ├── rotation.py          # Rotation matrix operations
-│   ├── twinning.py          # Twinning system handling
-│   ├── eshelby.py           # Eshelby tensor calculations
-│   └── grain_stress.py      # Grain-level stress calculations
-├── examples/                # Complete example suite
-│   ├── ex01_elast/         # Elastic property calculations
-│   ├── ex02_FCC/           # FCC crystal deformation
-│   ├── ex03_FCC/           # Advanced FCC simulations
-│   ├── ex04_BCC/           # BCC crystal systems
-│   ├── ex05_2ph/           # Two-phase composites
-│   ├── ex06_torsion/       # Torsion deformation
-│   ├── ex07_MTS/           # MTS hardening law
-│   ├── ex08_Zr/            # Zirconium HCP simulations
-│   ├── ex09_olivine/       # Olivine mineral systems
-│   ├── ex10_ice/           # Ice crystal plasticity
-│   ├── ex11_ECAE/          # Equal channel angular extrusion
-│   ├── ex12_dd/            # Dislocation density hardening
-│   ├── ex13_dd_rev/        # Dislocation density with reversal
-│   ├── ex14_growth/        # Irradiation growth modeling
-│   └── ex15_grshp/         # Grain shape evolution
-├── tests/                   # Test suite
-│   ├── __init__.py
-│   └── test_basic.py       # Basic functionality tests
-├── README.md               # This file
-├── LICENSE                 # License information
-├── setup.py               # Package installation script
-├── requirements.txt       # Python dependencies
-├── MANIFEST.in           # Package manifest
-└── .gitignore            # Git ignore rules
+VPSC_code_FORTRAN/
+??? vpsc8/                    # Main Python package
+?   ??? __init__.py          # Package initialization
+?   ??? main.py              # Main simulation driver
+?   ??? core.py              # Core VPSC and VPFC algorithms
+?   ??? readers.py           # Input file parsers
+?   ??? writers.py           # Output file generators
+?   ??? orientation.py       # Crystallographic orientation handling
+?   ??? hardening.py         # Hardening law implementations
+?   ??? schmid.py            # Schmid tensor calculations
+?   ??? shape.py             # Grain shape evolution
+?   ??? tensor.py            # Tensor operations and utilities
+?   ??? rotation.py          # Rotation matrix operations
+?   ??? twinning.py          # Twinning system handling
+?   ??? eshelby.py           # Eshelby tensor calculations
+?   ??? grain_stress.py      # Grain-level stress calculations
+??? examples/                # Complete example suite
+?   ??? ex01_elast/         # Elastic property calculations
+?   ??? ex02_FCC/           # FCC crystal deformation
+?   ??? ex03_FCC/           # Advanced FCC simulations
+?   ??? ex04_BCC/           # BCC crystal systems
+?   ??? ex05_2ph/           # Two-phase composites
+?   ??? ex06_torsion/       # Torsion deformation
+?   ??? ex07_MTS/           # MTS hardening law
+?   ??? ex08_Zr/            # Zirconium HCP simulations
+?   ??? ex09_olivine/       # Olivine mineral systems
+?   ??? ex10_ice/           # Ice crystal plasticity
+?   ??? ex11_ECAE/          # Equal channel angular extrusion
+?   ??? ex12_dd/            # Dislocation density hardening
+?   ??? ex13_dd_rev/        # Dislocation density with reversal
+?   ??? ex14_growth/        # Irradiation growth modeling
+?   ??? ex15_grshp/         # Grain shape evolution
+??? tests/                   # Test suite
+?   ??? __init__.py
+?   ??? test_basic.py       # Basic functionality tests
+??? README.md               # This file
+??? LICENSE                 # License information
+??? setup.py               # Package installation script
+??? requirements.txt       # Python dependencies
+??? MANIFEST.in           # Package manifest
+??? .gitignore            # Git ignore rules
 ```
 
 ## Examples Overview
@@ -183,12 +183,12 @@ The Python implementation maintains the computational efficiency of the original
 
 All examples have been validated against the original FORTRAN VPSC8 results:
 
-- ✅ **Elastic calculations**: Identical elastic moduli and properties
-- ✅ **Texture evolution**: Matching crystallographic orientations  
-- ✅ **Stress-strain response**: Identical mechanical behavior
-- ✅ **Hardening laws**: All hardening models validated
-- ✅ **Multi-phase behavior**: Composite material responses verified
-- ✅ **Grain shape evolution**: Complete morphology tracking validated
+- [x] **Elastic calculations**: Identical elastic moduli and properties
+- [x] **Texture evolution**: Matching crystallographic orientations  
+- [x] **Stress-strain response**: Identical mechanical behavior
+- [x] **Hardening laws**: All hardening models validated
+- [x] **Multi-phase behavior**: Composite material responses verified
+- [x] **Grain shape evolution**: Complete morphology tracking validated
 
 ## Contributing
 
@@ -199,7 +199,7 @@ This is a research code developed at Los Alamos National Laboratory. For bug rep
 If you use this code in your research, please cite:
 
 ```
-Tomé, C.N., Lebensohn, R.A., "VPSC8: Visco-Plastic Self-Consistent Crystal Plasticity Code - Python Implementation", Los Alamos National Laboratory (2024)
+Tom?, C.N., Lebensohn, R.A., "VPSC8: Visco-Plastic Self-Consistent Crystal Plasticity Code - Python Implementation", Los Alamos National Laboratory (2024)
 ```
 
 ## License
@@ -208,7 +208,7 @@ See LICENSE file for license information.
 
 ## Authors
 
-- **Original FORTRAN Code**: Carlos N. Tomé, Ricardo A. Lebensohn, et al.
+- **Original FORTRAN Code**: Carlos N. Tom?, Ricardo A. Lebensohn, et al.
 - **Python Implementation**: 2024
 
 ## Acknowledgments
