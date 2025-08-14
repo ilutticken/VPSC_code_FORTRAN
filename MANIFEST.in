@@ -1,0 +1,10 @@
+include README.md
+include LICENSE
+include requirements.txt
+include vpsc8/*.py
+recursive-include examples *
+recursive-exclude examples *.out
+recursive-exclude examples *.o*
+recursive-exclude examples __pycache__
+global-exclude *.pyc
+global-exclude __pycache__

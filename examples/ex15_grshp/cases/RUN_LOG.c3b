@@ -1,0 +1,546 @@
+
+ **** INPUT FILE VPSC.IN FOR THIS RUN ****
+1                          iregime (-1=EL ; 1=VP)                                                                                 
+1                          number of phases (nph)                                                                                 
+1.0  0.0                   relative vol. fract. of phases (wph(i))                                                                
+*INFORMATION ABOUT PHASE #1                                                                                                       
+3   0   25                    grain shape contrl, fragmentn, crit aspect ratio                                                    
+1.0  1.0  1.0                 initial ellipsoid ratios (dummy if ishape=4)                                                        
+0.0  0.0  0.0                 init Eul ang ellips axes (dummy if ishape=3,4)                                                      
+* name and path of texture file (filetext)                                                                                        
+ex15_grshp\rand500.tex                                                                                                            
+* name and path of single crystal file (filecrys)                                                                                 
+ex15_grshp\HCPhard.sx                                                                                                             
+* name and path of grain shape file (dummy if ishape<3) (fileaxes)                                                                
+ex15_grshp\mor_ph1_initial.in                                                                                                     
+* name and path of diffraction file (dummy if ishape=0)                                                                           
+0                                                                                                                                 
+dummy                                                                                                                             
+*PRECISION SETTINGS FOR CONVERGENCE PROCEDURES (default values)                                                                   
+1.e-3 1.e-3 1.e-3 0.01     errs,errd,errm,errso                                                                                   
+200 100 25     itmax:   max # of iter, external, internal and SO loops                                                            
+0  2  10  2   irsvar & jrsini,jrsfin,jrstep (dummy if irsvar=0)                                                                   
+*INPUT/OUTPUT SETTINGS FOR THE RUN (default is zero)                                                                              
+1              irecover:read grain states from POSTMORT.IN (1) or not (0)?                                                        
+0              isave:   write grain states in POSTMORT.OUT at step 'isave'?                                                       
+0              icubcomp:calculate fcc rolling components?                                                                         
+50             nwrite (frequency of texture downloads)                                                                            
+*MODELING CONDITIONS FOR THE RUN                                                                                                  
+3  10.         interaction (0:FC,1:affine,2:secant,3:neff,4:tangent,5:SO),neff                                                    
+1  1  1        iupdate: update orient, grain shape, hardening                                                                     
+0              nneigh (0 for no neighbors, 1 for pairs, etc.)                                                                     
+0              iflu (0: don't calc, 1: calc fluctuations)                                                                         
+*NUMBER OF PROCESSES (Lij const; Lij variable; PCYS ;LANKFORD; rigid rotatn)                                                      
+1                                                                                                                                 
+*IVGVAR AND PATH\NAME OF FILE FOR EACH PROCESS (dummy if ivgvar=2,3)                                                              
+0                                                                                                                                 
+ex15_grshp\shear200.12                                                                                                            
+
+
+ **** CRYSTAL DATA FILE ****
+*Material: zirconium                                                                                                              
+HEXAGONAL                                crysym                                                                                   
+1.  1.  1.594     90.  90.  120.         cdim(i),cang(i)                                                                          
+*Elastic stiffness of single crystal [MPa]                                                                                        
+  143.5e3    72.5e3    65.4e3     0.0     0.0     0.0                                                                             
+   72.5e3   143.5e3    65.4e3     0.0     0.0     0.0                                                                             
+   65.4e3    65.4e3   164.9e3     0.0     0.0     0.0                                                                             
+    0.0     0.0     0.0    32.1e3     0.0e3     0.0e3                                                                             
+    0.0     0.0     0.0     0.0e3    32.1e3     0.0e3                                                                             
+    0.0     0.0     0.0     0.0e3     0.0e3    35.5e3                                                                             
+*Thermal expansion coefficients of single crystal[K^(-1)]                                                                         
+  5.7e-6   5.7e-6  10.3e-6   0.0e0   0.0e0   0.0e0                                                                                
+SLIP AND TWINNING MODES                                                                                                           
+6                               nmodesx                                                                                           
+2                               nmodes                                                                                            
+1  4  5  6                      mode(i)                                                                                           
+PRISMATIC <a>                                                                                                                     
+  1    3   1   0                       modex,nsmx,isensex,itwtypex                                                                
+ 1  0 -1  0    -1  2 -1  0                                                                                                        
+ 0 -1  1  0     2 -1 -1  0                                                                                                        
+ -1  1  0  0    -1 -1  2  0                                                                                                       
+BASAL <a>                                                                                                                         
+  2    3   1   0                       modex,nsmx,isensex,itwtypex                                                                
+ 0  0  0  1     2 -1 -1  0                                                                                                        
+ 0  0  0  1    -1  2 -1  0                                                                                                        
+ 0  0  0  1    -1 -1  2  0                                                                                                        
+PYRAMIDAL<a>                                                                                                                      
+  3    6   1   0                       modex,nsmx,isensex,itwtypex                                                                
+ 1  0 -1  1    -1  2 -1  0                                                                                                        
+ 0 -1  1  1     2 -1 -1  0                                                                                                        
+ -1  1  0  1    -1 -1  2  0                                                                                                       
+ -1  0  1  1    -1  2 -1  0                                                                                                       
+ 0  1 -1  1     2 -1 -1  0                                                                                                        
+ 1 -1  0  1     1  1 -2  0                                                                                                        
+PYRAMIDAL<c+a>                                                                                                                    
+  4   12   1   0                       modex,nsmx,isensex,itwtypex                                                                
+ 1  0 -1  1    -1 -1  2  3                                                                                                        
+ 1  0 -1  1    -2  1  1  3                                                                                                        
+ 0 -1  1  1     1  1 -2  3                                                                                                        
+ 0 -1  1  1    -1  2 -1  3                                                                                                        
+ -1  1  0  1     2 -1 -1  3                                                                                                       
+ -1  1  0  1     1 -2  1  3                                                                                                       
+ -1  0  1  1     2 -1 -1  3                                                                                                       
+ -1  0  1  1     1  1 -2  3                                                                                                       
+ 0  1 -1  1    -1 -1  2  3                                                                                                        
+ 0  1 -1  1     1 -2  1  3                                                                                                        
+ 1 -1  0  1    -2  1  1  3                                                                                                        
+ 1 -1  0  1    -1  2 -1  3                                                                                                        
+TENSILE TWIN {10-12}                                                                                                              
+  5    6   0   2                       modex,nsmx,isensex,itwtypex                                                                
+ 0.167                                 twshx                                                                                      
+ 1  0 -1  2    -1  0  1  1                                                                                                        
+ 0  1 -1  2     0 -1  1  1                                                                                                        
+ -1  1  0  2     1 -1  0  1                                                                                                       
+ -1  0  1  2     1  0 -1  1                                                                                                       
+ 0 -1  1  2     0  1 -1  1                                                                                                        
+ 1 -1  0  2    -1  1  0  1                                                                                                        
+COMPRESSIVE TWIN {11-22}                                                                                                          
+  6    6   0   2                       modex,nsmx,isensex,itwtypex                                                                
+ 0.225                                 twshx                                                                                      
+ 2 -1 -1  2     2 -1 -1 -3                                                                                                        
+ 1  1 -2  2     1  1 -2 -3                                                                                                        
+ -1  2 -1  2    -1  2 -1 -3                                                                                                       
+ -2  1  1  2    -2  1  1 -3                                                                                                       
+ -1 -1  2  2    -1 -1  2 -3                                                                                                       
+ 1 -2  1  2     1 -2  1 -3                                                                                                        
+*Constitutive law                                                                                                                 
+   0      Voce=0, MTS=1                                                                                                           
+   1      iratesens (0:rate insensitive, 1:rate sensitive)                                                                        
+   25     grsze --> grain size only matters if HPfactor is non-zero                                                               
+ PRISMATIC <a> SLIP -------------------------------------------                                                                   
+ 20                               nrsx                                                                                            
+   20.  0.    0.   0.  0.        tau0x,tau1x,thet0,thet1, hpfac                                                                   
+ 1.0    1.0             hlatex(1,im),im=1,nmodes                                                                                  
+ PYRAMIDAL <c+a> SLIP -------------------------------------------                                                                 
+ 20                               nrsx                                                                                            
+   50.  0.    0.   0.   0.       tau0x,tau1x,thet0,thet1, hpfac                                                                   
+ 1.0    1.0             hlatex(1,im),im=1,nmodes                                                                                  
+**** END OF CRYSTAL DATA FILE ****
+
+
+ CHECKING THAT CELCC*SELCC-ID6=0   0.2297933E-15
+ *********** PHASE   1
+ RANDOM PX BULK & POISSON MODULI   95388.889       0.330
+ RANDOM PX ELASTIC CTES C11, C12, C44  144073.333   71046.667   36513.333
+
+ INSIDE SUBROUTINE DATA_CRYSTAL
+ SHEAR MODULUS FOR MODE  1 IN PHASE  1 IS   35500.000
+ N & B FOR MODE  1 IN PHASE  1
+     0.866     0.500     0.000       -0.500     0.866     0.000
+     0.000    -1.000     0.000        1.000     0.000     0.000
+    -0.866     0.500     0.000       -0.500    -0.866     0.000
+ SHEAR MODULUS FOR MODE  2 IN PHASE  1 IS   40331.548
+ N & B FOR MODE  2 IN PHASE  1
+     0.761     0.439     0.477       -0.266    -0.460     0.847
+     0.761     0.439     0.477       -0.531     0.000     0.847
+     0.000    -0.879     0.477        0.266     0.460     0.847
+     0.000    -0.879     0.477       -0.266     0.460     0.847
+    -0.761     0.439     0.477        0.531     0.000     0.847
+    -0.761     0.439     0.477        0.266    -0.460     0.847
+    -0.761    -0.439     0.477        0.531     0.000     0.847
+    -0.761    -0.439     0.477        0.266     0.460     0.847
+     0.000     0.879     0.477       -0.266    -0.460     0.847
+     0.000     0.879     0.477        0.266    -0.460     0.847
+     0.761    -0.439     0.477       -0.531     0.000     0.847
+     0.761    -0.439     0.477       -0.266     0.460     0.847
+
+ **** CRYST TEXTURE (FIRST FEW LINES) ****
+dummy                                                                                                                             
+dummy                                                                                                                             
+random texture generated by RANDTEXT.FOR (23/01/97)                                                                               
+B   500                                                                                                                           
+    102.74    119.56     33.65  1.0                                                                                               
+    219.06     36.21     70.51  1.0                                                                                               
+    166.66     28.59     45.80  1.0                                                                                               
+    149.74     86.13     38.68  1.0                                                                                               
+    143.88     72.50      9.75  1.0                                                                                               
+     27.71      7.88    225.69  1.0                                                                                               
+     10.26     81.59    324.82  1.0                                                                                               
+    213.21    156.91    352.41  1.0                                                                                               
+    313.75     60.06    131.59  1.0                                                                                               
+    283.74    137.64    213.65  1.0                                                                                               
+    329.59    158.18    298.33  1.0                                                                                               
+     61.37    171.68    104.65  1.0                                                                                               
+     44.90     68.33     40.28  1.0                                                                                               
+     29.40    114.77    163.14  1.0                                                                                               
+     56.39    115.89    341.90  1.0                                                                                               
+    271.21     76.66    171.67  1.0                                                                                               
+    .........................
+ **** END OF CRYST TEXTURE DATA FILE ****
+
+
+ **** MORPH TEXTURE (FIRST 20 LINES) ****
+MORPHOLOGY AT STRAIN =    0.0010  FOR PHASE  1                                                                                    
+   1.000   1.001   0.999  <-- AXES OF PHASE ELLIPSOID                                                                             
+   45.05   90.00   90.00  <-- EULER ANGLES OF PHASE ELLIPSOID (deg)                                                               
+   1.000   1.000   1.000  <-- AVERAGE OF GRAIN AXES FOR PHASE                                                                     
+   0.000   0.000   0.000  <-- STANDARD DEV OF AVG GRAIN AXES FOR PHASE                                                            
+B       500                                                                                                                       
+ -144.85  110.78   73.96     0.002000       1.0003    1.0007    0.9991                                                            
+ -136.66  125.19   91.79     0.002000       0.9999    1.0015    0.9985                                                            
+   50.36   76.44   64.60     0.002000       1.0000    1.0018    0.9982                                                            
+ -135.26   87.83   95.13     0.002000       1.0001    1.0010    0.9988                                                            
+ -135.23   86.91   99.92     0.002000       1.0003    1.0008    0.9989                                                            
+   45.77   97.50   92.44     0.002000       1.0000    1.0021    0.9979                                                            
+ -153.69   88.66   89.18     0.002000       1.0000    1.0005    0.9995                                                            
+   47.82  112.42   95.69     0.002000       1.0000    1.0019    0.9981                                                            
+ -135.23   89.74   62.34     0.002000       1.0004    1.0009    0.9987                                                            
+   40.80  109.28   57.67     0.002000       1.0002    1.0012    0.9987                                                            
+   47.15   85.08   68.72     0.002000       1.0000    1.0019    0.9981                                                            
+ -135.74   97.96   87.57     0.002000       1.0000    1.0021    0.9979                                                            
+ -139.13   66.70   92.45     0.002000       0.9997    1.0011    0.9992                                                            
+ -138.00   91.57   89.08     0.002000       0.9997    1.0013    0.9991                                                            
+    .........................
+ **** END OF MORPH TEXTURE DATA FILE ****
+
+
+*** RUNNING INTERACTION NEFF=   10.00
+
+
+ UB THERMAL TENSOR (VOIGT NOTATION)
+  0.7319E-05  0.7221E-05  0.7313E-05  0.5015E-07  0.8646E-07 -0.5144E-07
+
+ UB ELASTIC STIFFNESS (VOIGT NOTATION)
+  0.1442E+06  0.7111E+05  0.7090E+05 -0.7493E+01  0.9177E+02  0.6044E+02
+  0.7111E+05  0.1437E+06  0.7120E+05  0.5144E+02  0.3339E+02 -0.1748E+03
+  0.7090E+05  0.7120E+05  0.1441E+06  0.7630E+02  0.8168E+02 -0.8421E+01
+ -0.7493E+01  0.5144E+02  0.7630E+02  0.3664E+05 -0.4019E+02  0.8691E+02
+  0.9177E+02  0.3339E+02  0.8168E+02 -0.4019E+02  0.3641E+05  0.2362E+02
+  0.6044E+02 -0.1748E+03 -0.8421E+01  0.8691E+02  0.2362E+02  0.3656E+05
+
+ LB THERMAL TENSOR (VOIGT NOTATION)
+  0.7260E-05  0.7185E-05  0.7255E-05  0.3868E-07  0.6654E-07 -0.3950E-07
+
+ LB ELASTIC STIFFNESS (VOIGT NOTATION)
+  0.1430E+06  0.7144E+05  0.7127E+05 -0.4984E+00  0.6284E+02  0.6137E+02
+  0.7144E+05  0.1426E+06  0.7151E+05  0.3480E+02  0.3877E+02 -0.1402E+03
+  0.7127E+05  0.7151E+05  0.1430E+06  0.5650E+02  0.5409E+02 -0.1355E+02
+ -0.4984E+00  0.3480E+02  0.5650E+02  0.3589E+05 -0.2674E+02  0.6179E+02
+  0.6284E+02  0.3877E+02  0.5409E+02 -0.2674E+02  0.3567E+05  0.1266E+02
+  0.6137E+02 -0.1402E+03 -0.1355E+02  0.6179E+02  0.1266E+02  0.3582E+05
+
+
+*** LOAD CONDITIONS FOR THIS RUN
+  100   6   0.02    298.   298.   nsteps  ictrl  eqincr  temp_i  temp_f                                                           
+* boundary conditions                                                                                                             
+    0       1       1           iudot    |    flag for vel.grad.                                                                  
+    1       0       1                    |    (0:unknown-1:known)                                                                 
+    1       1       0                    |                                                                                        
+                                         |                                                                                        
+    0.      1.      0.          udot     |    vel.grad                                                                            
+    0.      0.      0.                   |                                                                                        
+    0.      0.      0.                |                                                                                           
+                                         |                                                                                        
+    1       0       0           iscau    |    flag for Cauchy                                                                     
+            1       0                    |                                                                                        
+                    1                    |                                                                                        
+                                         |                                                                                        
+    0.      0.      0.          scauchy  |    Cauchy stress                                                                       
+            0.      0.                   |                                                                                        
+                    0.                   @                                                                                        
+
+*******   STEP   1      *** N_EFF=cte CALCULATION              
+    3   0.131E-03   0.976E-03   0.801E-03
+
+*******   STEP   2      *** N_EFF=cte CALCULATION              
+    8   0.229E-03   0.879E-03   0.196E-03
+
+*******   STEP   3      *** N_EFF=cte CALCULATION              
+   13   0.157E-03   0.840E-03   0.124E-03
+
+*******   STEP   4      *** N_EFF=cte CALCULATION              
+   13   0.177E-03   0.969E-03   0.101E-03
+
+*******   STEP   5      *** N_EFF=cte CALCULATION              
+   13   0.157E-03   0.934E-03   0.998E-04
+
+*******   STEP   6      *** N_EFF=cte CALCULATION              
+   13   0.173E-03   0.997E-03   0.126E-03
+
+*******   STEP   7      *** N_EFF=cte CALCULATION              
+   14   0.126E-03   0.895E-03   0.296E-03
+
+*******   STEP   8      *** N_EFF=cte CALCULATION              
+   13   0.163E-03   0.996E-03   0.991E-04
+
+*******   STEP   9      *** N_EFF=cte CALCULATION              
+   14   0.140E-03   0.969E-03   0.254E-03
+
+*******   STEP  10      *** N_EFF=cte CALCULATION              
+   15   0.128E-03   0.906E-03   0.173E-03
+
+*******   STEP  11      *** N_EFF=cte CALCULATION              
+   15   0.128E-03   0.894E-03   0.172E-03
+
+*******   STEP  12      *** N_EFF=cte CALCULATION              
+   15   0.129E-03   0.929E-03   0.105E-03
+
+*******   STEP  13      *** N_EFF=cte CALCULATION              
+   16   0.132E-03   0.915E-03   0.132E-03
+
+*******   STEP  14      *** N_EFF=cte CALCULATION              
+   16   0.137E-03   0.994E-03   0.151E-03
+
+*******   STEP  15      *** N_EFF=cte CALCULATION              
+   17   0.134E-03   0.972E-03   0.305E-03
+
+*******   STEP  16      *** N_EFF=cte CALCULATION              
+   18   0.154E-03   0.981E-03   0.188E-03
+
+*******   STEP  17      *** N_EFF=cte CALCULATION              
+   19   0.145E-03   0.936E-03   0.882E-04
+
+*******   STEP  18      *** N_EFF=cte CALCULATION              
+   19   0.139E-03   0.939E-03   0.760E-04
+
+*******   STEP  19      *** N_EFF=cte CALCULATION              
+   19   0.130E-03   0.971E-03   0.648E-04
+
+*******   STEP  20      *** N_EFF=cte CALCULATION              
+   20   0.104E-03   0.957E-03   0.672E-04
+
+*******   STEP  21      *** N_EFF=cte CALCULATION              
+   20   0.937E-04   0.989E-03   0.250E-03
+
+*******   STEP  22      *** N_EFF=cte CALCULATION              
+   19   0.118E-03   0.963E-03   0.183E-03
+
+*******   STEP  23      *** N_EFF=cte CALCULATION              
+   18   0.149E-03   0.967E-03   0.582E-04
+
+*******   STEP  24      *** N_EFF=cte CALCULATION              
+   17   0.139E-03   0.987E-03   0.179E-03
+
+*******   STEP  25      *** N_EFF=cte CALCULATION              
+   16   0.937E-04   0.991E-03   0.209E-03
+
+*******   STEP  26      *** N_EFF=cte CALCULATION              
+   16   0.829E-04   0.939E-03   0.196E-03
+
+*******   STEP  27      *** N_EFF=cte CALCULATION              
+   15   0.951E-04   0.947E-03   0.122E-03
+
+*******   STEP  28      *** N_EFF=cte CALCULATION              
+   15   0.111E-03   0.912E-03   0.931E-04
+
+*******   STEP  29      *** N_EFF=cte CALCULATION              
+   11   0.193E-03   0.981E-03   0.201E-03
+
+*******   STEP  30      *** N_EFF=cte CALCULATION              
+    9   0.123E-03   0.840E-03   0.552E-03
+
+*******   STEP  31      *** N_EFF=cte CALCULATION              
+    8   0.269E-03   0.699E-03   0.203E-03
+
+*******   STEP  32      *** N_EFF=cte CALCULATION              
+    6   0.166E-03   0.896E-03   0.717E-03
+
+*******   STEP  33      *** N_EFF=cte CALCULATION              
+   12   0.211E-03   0.982E-03   0.463E-03
+
+*******   STEP  34      *** N_EFF=cte CALCULATION              
+   24   0.103E-03   0.949E-03   0.969E-04
+
+*******   STEP  35      *** N_EFF=cte CALCULATION              
+   26   0.939E-04   0.985E-03   0.422E-03
+
+*******   STEP  36      *** N_EFF=cte CALCULATION              
+   32   0.122E-03   0.879E-03   0.271E-03
+
+*******   STEP  37      *** N_EFF=cte CALCULATION              
+   32   0.136E-03   0.991E-03   0.879E-04
+
+*******   STEP  38      *** N_EFF=cte CALCULATION              
+   33   0.626E-04   0.955E-03   0.211E-03
+
+*******   STEP  39      *** N_EFF=cte CALCULATION              
+   32   0.785E-04   0.960E-03   0.117E-03
+
+*******   STEP  40      *** N_EFF=cte CALCULATION              
+   31   0.129E-03   0.993E-03   0.402E-04
+
+*******   STEP  41      *** N_EFF=cte CALCULATION              
+   31   0.123E-03   0.934E-03   0.384E-04
+
+*******   STEP  42      *** N_EFF=cte CALCULATION              
+   28   0.125E-03   0.982E-03   0.675E-04
+
+*******   STEP  43      *** N_EFF=cte CALCULATION              
+   26   0.606E-04   0.969E-03   0.258E-03
+
+*******   STEP  44      *** N_EFF=cte CALCULATION              
+   25   0.142E-03   0.899E-03   0.160E-03
+
+*******   STEP  45      *** N_EFF=cte CALCULATION              
+   19   0.129E-03   0.955E-03   0.350E-03
+
+*******   STEP  46      *** N_EFF=cte CALCULATION              
+   19   0.150E-03   0.906E-03   0.339E-03
+
+*******   STEP  47      *** N_EFF=cte CALCULATION              
+   15   0.201E-03   0.973E-03   0.970E-04
+
+*******   STEP  48      *** N_EFF=cte CALCULATION              
+   12   0.278E-03   0.952E-03   0.241E-03
+
+*******   STEP  49      *** N_EFF=cte CALCULATION              
+   12   0.334E-03   0.711E-03   0.313E-03
+
+*******   STEP  50      *** N_EFF=cte CALCULATION              
+    9   0.196E-03   0.920E-03   0.306E-03
+
+*******   STEP  51      *** N_EFF=cte CALCULATION              
+   10   0.202E-03   0.961E-03   0.191E-03
+
+*******   STEP  52      *** N_EFF=cte CALCULATION              
+   12   0.414E-03   0.975E-03   0.170E-03
+
+*******   STEP  53      *** N_EFF=cte CALCULATION              
+    9   0.282E-03   0.863E-03   0.483E-04
+
+*******   STEP  54      *** N_EFF=cte CALCULATION              
+    8   0.416E-03   0.920E-03   0.516E-03
+
+*******   STEP  55      *** N_EFF=cte CALCULATION              
+   10   0.213E-03   0.690E-03   0.544E-03
+
+*******   STEP  56      *** N_EFF=cte CALCULATION              
+   16   0.345E-03   0.990E-03   0.704E-04
+
+*******   STEP  57      *** N_EFF=cte CALCULATION              
+   13   0.246E-03   0.939E-03   0.209E-03
+
+*******   STEP  58      *** N_EFF=cte CALCULATION              
+   10   0.244E-03   0.663E-03   0.511E-03
+
+*******   STEP  59      *** N_EFF=cte CALCULATION              
+   17   0.386E-03   0.750E-03   0.502E-03
+
+*******   STEP  60      *** N_EFF=cte CALCULATION              
+   16   0.266E-03   0.989E-03   0.536E-03
+
+*******   STEP  61      *** N_EFF=cte CALCULATION              
+   13   0.249E-03   0.845E-03   0.498E-03
+
+*******   STEP  62      *** N_EFF=cte CALCULATION              
+   10   0.180E-03   0.943E-03   0.203E-03
+
+*******   STEP  63      *** N_EFF=cte CALCULATION              
+   16   0.327E-03   0.914E-03   0.465E-03
+
+*******   STEP  64      *** N_EFF=cte CALCULATION              
+   16   0.327E-03   0.802E-03   0.437E-03
+
+*******   STEP  65      *** N_EFF=cte CALCULATION              
+   16   0.339E-03   0.860E-03   0.349E-03
+
+*******   STEP  66      *** N_EFF=cte CALCULATION              
+   20   0.266E-03   0.842E-03   0.152E-03
+
+*******   STEP  67      *** N_EFF=cte CALCULATION              
+   18   0.258E-03   0.940E-03   0.293E-03
+
+*******   STEP  68      *** N_EFF=cte CALCULATION              
+   11   0.592E-03   0.893E-03   0.249E-03
+
+*******   STEP  69      *** N_EFF=cte CALCULATION              
+   10   0.201E-03   0.994E-03   0.745E-03
+
+*******   STEP  70      *** N_EFF=cte CALCULATION              
+   16   0.470E-03   0.934E-03   0.362E-03
+
+*******   STEP  71      *** N_EFF=cte CALCULATION              
+   12   0.287E-03   0.729E-03   0.151E-03
+
+*******   STEP  72      *** N_EFF=cte CALCULATION              
+   16   0.387E-03   0.994E-03   0.165E-03
+
+*******   STEP  73      *** N_EFF=cte CALCULATION              
+   17   0.355E-03   0.712E-03   0.821E-03
+
+*******   STEP  74      *** N_EFF=cte CALCULATION              
+   16   0.358E-03   0.880E-03   0.136E-03
+
+*******   STEP  75      *** N_EFF=cte CALCULATION              
+   17   0.392E-03   0.623E-03   0.907E-03
+
+*******   STEP  76      *** N_EFF=cte CALCULATION              
+   18   0.269E-03   0.958E-03   0.479E-03
+
+*******   STEP  77      *** N_EFF=cte CALCULATION              
+   15   0.427E-03   0.654E-03   0.813E-03
+
+*******   STEP  78      *** N_EFF=cte CALCULATION              
+   19   0.596E-03   0.986E-03   0.368E-03
+
+*******   STEP  79      *** N_EFF=cte CALCULATION              
+   21   0.235E-03   0.932E-03   0.759E-03
+
+*******   STEP  80      *** N_EFF=cte CALCULATION              
+   17   0.459E-03   0.767E-03   0.934E-03
+
+*******   STEP  81      *** N_EFF=cte CALCULATION              
+   17   0.598E-03   0.843E-03   0.913E-03
+
+*******   STEP  82      *** N_EFF=cte CALCULATION              
+   17   0.388E-03   0.878E-03   0.246E-03
+
+*******   STEP  83      *** N_EFF=cte CALCULATION              
+   19   0.462E-03   0.773E-03   0.651E-03
+
+*******   STEP  84      *** N_EFF=cte CALCULATION              
+   20   0.606E-03   0.779E-03   0.764E-03
+
+*******   STEP  85      *** N_EFF=cte CALCULATION              
+   19   0.397E-03   0.892E-03   0.901E-03
+
+*******   STEP  86      *** N_EFF=cte CALCULATION              
+   16   0.514E-03   0.990E-03   0.296E-03
+
+*******   STEP  87      *** N_EFF=cte CALCULATION              
+   24   0.552E-03   0.631E-03   0.870E-03
+
+*******   STEP  88      *** N_EFF=cte CALCULATION              
+   15   0.349E-03   0.767E-03   0.728E-03
+
+*******   STEP  89      *** N_EFF=cte CALCULATION              
+   30   0.456E-03   0.754E-03   0.599E-03
+
+*******   STEP  90      *** N_EFF=cte CALCULATION              
+   25   0.572E-03   0.908E-03   0.208E-03
+
+*******   STEP  91      *** N_EFF=cte CALCULATION              
+   31   0.675E-03   0.968E-03   0.983E-03
+
+*******   STEP  92      *** N_EFF=cte CALCULATION              
+   28   0.565E-03   0.885E-03   0.356E-03
+
+*******   STEP  93      *** N_EFF=cte CALCULATION              
+   19   0.553E-03   0.983E-03   0.366E-03
+
+*******   STEP  94      *** N_EFF=cte CALCULATION              
+   23   0.599E-03   0.905E-03   0.698E-03
+
+*******   STEP  95      *** N_EFF=cte CALCULATION              
+   24   0.507E-03   0.999E-03   0.521E-03
+
+*******   STEP  96      *** N_EFF=cte CALCULATION              
+   27   0.675E-03   0.896E-03   0.524E-03
+
+*******   STEP  97      *** N_EFF=cte CALCULATION              
+   18   0.655E-03   0.930E-03   0.995E-03
+
+*******   STEP  98      *** N_EFF=cte CALCULATION              
+   22   0.437E-03   0.775E-03   0.657E-03
+
+*******   STEP  99      *** N_EFF=cte CALCULATION              
+   29   0.379E-03   0.615E-03   0.943E-03
+
+*******   STEP 100      *** N_EFF=cte CALCULATION              
+   31   0.431E-03   0.678E-03   0.601E-03
+
+*******   STEP 101      *** N_EFF=cte CALCULATION              
+   22   0.368E-03   0.976E-03   0.224E-03
+
+ TIME ELAPSED  698.28secs
