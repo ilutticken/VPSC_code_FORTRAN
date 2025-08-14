@@ -202,27 +202,8 @@ All examples have been validated against the original FORTRAN VPSC8 results:
 - [x] **Multi-phase behavior**: Composite material responses verified
 - [x] **Grain shape evolution**: Complete morphology tracking validated
 
-## Contributing
-
-This is a research code developed at Los Alamos National Laboratory. For bug reports or questions, please open an issue on GitHub.
-
-## Citation
-
-If you use this code in your research, please cite:
-
-```
-Tom?, C.N., Lebensohn, R.A., "VPSC8: Visco-Plastic Self-Consistent Crystal Plasticity Code - Python Implementation", Los Alamos National Laboratory (2024)
 ```
 
 ## License
 
 See LICENSE file for license information.
-
-## Authors
-
-- **Original FORTRAN Code**: Carlos N. Tom?, Ricardo A. Lebensohn, et al.
-- **Python Implementation**: 2024
-
-## Acknowledgments
-
-This work was supported by Los Alamos National Laboratory and the U.S. Department of Energy.
